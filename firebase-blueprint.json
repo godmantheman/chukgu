@@ -1,0 +1,27 @@
+{
+  "entities": {
+    "room": {
+      "title": "Game Room",
+      "description": "A multiplayer game session",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "playerCount": { "type": "number" },
+        "difficulty": { "type": "string", "enum": ["EASY", "NORMAL", "HARD"] },
+        "blueScore": { "type": "number" },
+        "redScore": { "type": "number" },
+        "status": { "type": "string", "enum": ["WAITING", "PLAYING", "FINISHED"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "ownerId", "status"]
+    }
+  },
+  "firestore": {
+    "rooms": {
+      "schema": "room",
+      "description": "Active game rooms"
+    }
+  }
+}

@@ -1,0 +1,32 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidRoom(data) {
+      return data.id is string &&
+             data.name is string && data.name.size() <= 50 &&
+             data.ownerId == request.auth.uid &&
+             data.status in ['WAITING', 'PLAYING', 'FINISHED'];
+    }
+
+    match /rooms/{roomId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidRoom(request.resource.data);
+      allow update: if isSignedIn() && (
+        // Only owner can change status or config
+        (resource.data.ownerId == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'difficulty', 'redScore', 'blueScore'])) ||
+        // Allow anyone in room to update score if logic dictates (though usually done by authority)
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['redScore', 'blueScore']))
+      );
+      allow delete: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+    }
+  }
+}
