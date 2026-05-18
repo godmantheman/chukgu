@@ -332,6 +332,7 @@ export function useSoccerGame(
     
     console.log('Starting game with role:', options.role);
     isPlayingRef.current = true;
+    myPlayerRef.current = null;
     setScore({ blue: 0, red: 0 });
 
     // Clear old players
@@ -340,17 +341,23 @@ export function useSoccerGame(
 
     const setupTeam = (team: 'blue' | 'red', isUserTeam: boolean) => {
       for (let i = 0; i < options.playerCount; i++) {
-        let type = (i === 0) ? 'GK' : (i === 1 ? 'STRIKER' : 'SUPPORT');
+        let type = 'SUPPORT';
+        if (i === 0) type = 'GK';
+        else if (i === 1) type = 'STRIKER';
+
+        // If this is the user's team AND we haven't assigned the user's role yet,
+        // and this is either the correct role OR it's the last chance (if playerCount is small)
         let isAI = true;
-        
-        if (isUserTeam && type === options.role && !myPlayerRef.current) {
-          isAI = false;
-          const p = new Player(team, false, type);
-          myPlayerRef.current = p;
-          playersRef.current.push(p);
-        } else {
-          playersRef.current.push(new Player(team, true, type));
+        if (isUserTeam && !myPlayerRef.current) {
+          if (type === options.role || (i === options.playerCount - 1)) {
+            isAI = false;
+            type = options.role; // Force the role if it's the last chance
+          }
         }
+        
+        const p = new Player(team, isAI, type);
+        if (!isAI) myPlayerRef.current = p;
+        playersRef.current.push(p);
       }
     };
     setupTeam('blue', true);
@@ -363,7 +370,6 @@ export function useSoccerGame(
   useEffect(() => {
     let frameId: number;
     const animate = () => {
-[diff_chunk_start]
       frameId = requestAnimationFrame(animate);
       const dt = Math.min(clockRef.current.getDelta(), 0.1);
 

@@ -12,7 +12,6 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [gameState, setGameState] = useState<'MENU' | 'PLAYING'>('MENU');
   const [gameConfig, setGameConfig] = useState<{
-[diff_chunk_start]
     mode: GameMode;
     playerCount: number;
     difficulty: Difficulty;
